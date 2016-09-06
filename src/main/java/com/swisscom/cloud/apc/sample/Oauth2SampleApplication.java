@@ -15,33 +15,90 @@
  */
 package com.swisscom.cloud.apc.sample;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.*;
 
 @SpringBootApplication
-@EnableOAuth2Sso
-@RestController
+@Controller
 public class Oauth2SampleApplication {
+    @Autowired
+    private Environment env;
 
     @RequestMapping("/")
     @ResponseBody
-    Authentication home(Principal user) {
+    public String home(Principal user)  {
         // print user info to show what's available to the app (firstname, lastname, ...)
-        return ((OAuth2Authentication) user).getUserAuthentication();
+        return userInfoAsJson(user) + "<hr/> <a href=\"/logout\">Logout</a>";
+    }
+
+    private String userInfoAsJson(Principal user) {
+        Authentication authentication = ((OAuth2Authentication) user).getUserAuthentication();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(authentication);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // for logout, we clear the local session and then redirect to the UAA's logout endpoint.
+    // The UAA will then initiate its logout (i.e. by triggering SAML SLO) and redirect us back to the URL on our side
+    // which we specified with the redirect= query param.
+    @RequestMapping(value="/logout", method = RequestMethod.GET)
+    public String logout(HttpServletRequest request, HttpServletResponse response) {
+        destroyLocalSession(request, response);
+        return "redirect:" + buildLogoutRedirectUrl();
+    }
+
+    private void destroyLocalSession(HttpServletRequest request, HttpServletResponse response) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null){
+            new SecurityContextLogoutHandler().logout(request, response, auth);
+        }
+    }
+
+    private String buildLogoutRedirectUrl() {
+        String logoutEndpoint = env.getProperty("sample.oauth2.logoutEndpoint");
+        String clientId = env.getProperty("security.oauth2.client.clientId");
+        String afterLogoutRedirectUrl = env.getProperty("sample.oauth2.afterLogoutRedirectUrl");
+
+        try {
+            return logoutEndpoint + "?redirect=" + URLEncoder.encode(afterLogoutRedirectUrl, "UTF-8") +
+                    "&client_id=" + URLEncoder.encode(clientId, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @RequestMapping("/logged_out")
+    @ResponseBody
+    public String loggedOut() {
+        return "Logged out. <a href=\"/\">Log in again</a>";
     }
 
     public static void main(String[] args) {
         String vcapServices = System.getenv().get("VCAP_SERVICES");
+        String afterLogoutRedirectUrl = System.getenv().get("AFTER_LOGOUT_URL");
         Optional<Map<String, Object>> maybeCredentials = parseOAuth2Credentials(vcapServices);
         System.out.println(maybeCredentials.orElseThrow(() -> new RuntimeException("Oauth2 credentials not found in VCAP_SERVICES")));
 
@@ -53,14 +110,14 @@ public class Oauth2SampleApplication {
         props.put("security.oauth2.client.accessTokenUri", credentials.get("tokenEndpoint"));
         props.put("security.oauth2.client.userAuthorizationUri", credentials.get("authorizationEndpoint"));
         props.put("security.oauth2.resource.userInfoUri", credentials.get("userInfoEndpoint"));
+        props.put("sample.oauth2.logoutEndpoint", credentials.get("logoutEndpoint"));
+        props.put("sample.oauth2.afterLogoutRedirectUrl", afterLogoutRedirectUrl);
         props.put("security.resources.chain.enabled", true);
-
 
         new SpringApplicationBuilder()
                 .sources(Oauth2SampleApplication.class)
                 .properties(props)
                 .run(args);
-
     }
 
     public static Optional<Map<String, Object>> parseOAuth2Credentials(String vcapServices) {
