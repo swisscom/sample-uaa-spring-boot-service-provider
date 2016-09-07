@@ -67,7 +67,7 @@ public class Oauth2SampleApplication {
     @RequestMapping(value="/logout", method = RequestMethod.GET)
     public String logout(HttpServletRequest request, HttpServletResponse response) {
         destroyLocalSession(request, response);
-        return "redirect:" + buildLogoutRedirectUrl();
+        return "redirect:" + buildLogoutRedirectUrl(afterLogoutRedirectUrl(request));
     }
 
     private void destroyLocalSession(HttpServletRequest request, HttpServletResponse response) {
@@ -77,10 +77,13 @@ public class Oauth2SampleApplication {
         }
     }
 
-    private String buildLogoutRedirectUrl() {
+    private String afterLogoutRedirectUrl(HttpServletRequest request) {
+        return request.getRequestURL().toString().replace("/logout", "/logged_out");
+    }
+
+    private String buildLogoutRedirectUrl(String afterLogoutRedirectUrl) {
         String logoutEndpoint = env.getProperty("sample.oauth2.logoutEndpoint");
         String clientId = env.getProperty("security.oauth2.client.clientId");
-        String afterLogoutRedirectUrl = env.getProperty("sample.oauth2.afterLogoutRedirectUrl");
 
         try {
             return logoutEndpoint + "?redirect=" + URLEncoder.encode(afterLogoutRedirectUrl, "UTF-8") +
@@ -98,7 +101,6 @@ public class Oauth2SampleApplication {
 
     public static void main(String[] args) {
         String vcapServices = System.getenv().get("VCAP_SERVICES");
-        String afterLogoutRedirectUrl = System.getenv().get("AFTER_LOGOUT_URL");
         Optional<Map<String, Object>> maybeCredentials = parseOAuth2Credentials(vcapServices);
         System.out.println(maybeCredentials.orElseThrow(() -> new RuntimeException("Oauth2 credentials not found in VCAP_SERVICES")));
 
@@ -111,7 +113,6 @@ public class Oauth2SampleApplication {
         props.put("security.oauth2.client.userAuthorizationUri", credentials.get("authorizationEndpoint"));
         props.put("security.oauth2.resource.userInfoUri", credentials.get("userInfoEndpoint"));
         props.put("sample.oauth2.logoutEndpoint", credentials.get("logoutEndpoint"));
-        props.put("sample.oauth2.afterLogoutRedirectUrl", afterLogoutRedirectUrl);
         props.put("security.resources.chain.enabled", true);
 
         new SpringApplicationBuilder()
