@@ -1,4 +1,4 @@
-# Sample OAuth2 spring boot app for CloudFoundry
+# Sample OAuth2 spring boot app for Cloud Foundry
 Demo app that authenticates its users against an OAuth2 provider.
 It uses Spring boot and Spring security (based on https://github.com/spring-guides/tut-spring-boot-oauth2).
 It is primarily designed to run on CloudFoundry, since it expects the OAuth2 configuration to be passed in `VCAP_SERVICES.
