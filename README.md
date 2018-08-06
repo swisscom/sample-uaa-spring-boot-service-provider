@@ -55,4 +55,4 @@ After login, the user attributes passed to the app will be shown:
 
 ## Other applications
 A similar example for Ruby applications can be found here:
-https://github.com/cloudfoundry/omniauth-uaa-oauth2/blob/master/examples/config.ru
+https://github.com/swisscom/sample-uaa-service-provider
