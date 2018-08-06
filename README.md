@@ -25,7 +25,7 @@ cf push oauth2-simple --random-route --no-start -p target/oauth2-simple-0.0.1-SN
 # Now create the user provided service which will be provided to the app in VCAP_SERVICES.
 # The client specified here must be created manually beforehand on the OAuth2 provider.
 CREDENTIALS='{"authorizationEndpoint": "<uaa-url>/oauth/authorize", "tokenEndpoint": "<uaa-url>/oauth/token", "userInfoEndpoint": "<uaa-url>/userinfo", "logoutEndpoint": "<uaa-url>/logout.do", "clientId": "<client-id>", "clientSecret": "<client-secret>"}'
-cf create-user-provided-service OAUTH2-CLIENT -p $CREDENTIALS
+cf create-user-provided-service OAUTH2-CLIENT -p $CREDENTIALS -t oauth2
 
 # Bind & start the app to make the service instance available
 cf bind-service oauth2-simple OAUTH2-CLIENT
