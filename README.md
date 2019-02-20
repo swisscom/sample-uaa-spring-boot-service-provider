@@ -1,6 +1,9 @@
-# Sample OAuth2 spring boot app for CloudFoundry
-Demo app that authenticates its users against an OAuth2 provider.
+# Sample Spring boot OAuth2 service provider for UAA
+Demo app that authenticates its users against an OAuth2 provider (i.e. UAA) using the `authorization code` grant type,
+meaning this app will store the session (and JWT) in its backend.
+
 It uses Spring boot and Spring security (based on https://github.com/spring-guides/tut-spring-boot-oauth2).
+
 It is primarily designed to run on CloudFoundry, since it expects the OAuth2 configuration to be passed in `VCAP_SERVICES.
 
 ## How it works
@@ -53,6 +56,15 @@ After login, the user attributes passed to the app will be shown:
 }
 ```
 
-## Other applications
-A similar example for Ruby applications can be found here:
-https://github.com/cloudfoundry/omniauth-uaa-oauth2/blob/master/examples/config.ru
+## Sample overview
+### Authorization code
+- Service provider (Spring boot): https://github.com/swisscom/sample-uaa-spring-boot-service-provider
+- Service provider (Ruby): https://github.com/swisscom/sample-uaa-ruby-service-provider
+
+### Implicit flow & Client Credentials
+- Client (VueJS): https://github.com/swisscom/sample-uaa-vue-client
+- Client (React & Redux):https://github.com/swisscom/sample-uaa-react-redux-client
+- Client (AngularJS): https://github.com/swisscom/sample-uaa-angular-client
+
+- Resource Server (Spring boot): https://github.com/swisscom/sample-uaa-spring-boot-resource-server"
+- Resource Server (Ruby): https://github.com/swisscom/sample-uaa-ruby-resource-server
