@@ -66,5 +66,5 @@ After login, the user attributes passed to the app will be shown:
 - Client (React & Redux):https://github.com/swisscom/sample-uaa-react-redux-client
 - Client (AngularJS): https://github.com/swisscom/sample-uaa-angular-client
 
-- Resource Server (Spring boot): https://github.com/swisscom/sample-uaa-spring-boot-resource-server"
+- Resource Server (Spring boot): https://github.com/swisscom/sample-uaa-spring-boot-resource-server
 - Resource Server (Ruby): https://github.com/swisscom/sample-uaa-ruby-resource-server
