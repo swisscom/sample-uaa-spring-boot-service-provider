@@ -62,6 +62,7 @@ After login, the user attributes passed to the app will be shown:
 - Service provider (Ruby): https://github.com/swisscom/sample-uaa-ruby-service-provider
 
 ### Implicit flow & Client Credentials
+> **_WARNING:_** [PKCE's](https://oauth.net/2/pkce/) secure implementation renders the implicit flow obsolete, as it is [vulnerable](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-2.1.2) and must not be used anymore.
 - Client (VueJS): https://github.com/swisscom/sample-uaa-vue-client
 - Client (React & Redux):https://github.com/swisscom/sample-uaa-react-redux-client
 - Client (AngularJS): https://github.com/swisscom/sample-uaa-angular-client
